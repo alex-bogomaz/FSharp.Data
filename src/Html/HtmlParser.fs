@@ -83,6 +83,12 @@ type HtmlNode =
     override x.ToString() =
         let rec serialize (sb:StringBuilder) indentation canAddNewLine html =
             let append (str:string) = sb.Append str |> ignore
+            let appendEndTag name = 
+                append "</"
+                append name
+                append ">"
+            let shouldAppendEndTag name =
+                name = "textarea"
             let newLine plus =
                 sb.AppendLine() |> ignore
                 String(' ', indentation + plus) |> append
@@ -100,7 +106,11 @@ type HtmlNode =
                     append value
                     append "\""
                 if elements.IsEmpty then 
-                    append " />"
+                    if shouldAppendEndTag name then
+                        append ">"
+                        appendEndTag name
+                    else
+                        append " />"
                 else
                     append ">"
                     if not onlyText then
@@ -111,9 +121,7 @@ type HtmlNode =
                         canAddNewLine <- true
                     if not onlyText then
                         newLine 0
-                    append "</"
-                    append name
-                    append ">"
+                    appendEndTag name
             | HtmlText str -> append str
             | HtmlComment str -> 
                     append "<!--"
